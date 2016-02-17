@@ -3,17 +3,16 @@ class Player64:
 	def __init__(self):
 		self.player_mark = 'Z'
 		self.opponent_mark = 'Y'
-		pass
 
 	def move(self,temp_board,temp_block,old_move,flag):
+		current_board_state = temp_board[:]
+		current_block_state = temp_block[:]
 		#List of permitted blocks, based on old move.
-		blocks_allowed  = get_allowed_blocks(old_move, temp_block)
+		blocks_allowed = get_allowed_blocks(old_move, current_block_state)
 		self.player_mark = flag
 		self.opponent_mark = compliment_mark(flag)
 		#Get list of empty valid cells
-		cells = get_actions(temp_board, blocks_allowed)
-		current_board_state = temp_board[:]
-		current_block_state = temp_block[:]
+		cells = get_actions(current_board_state, current_block_state, blocks_allowed)
 		return minimax_decision(current_board_state, current_block_state, cells, flag)
 
 	def minimax_decision(self, current_board_state, current_block_state, actions, flag):
@@ -33,7 +32,7 @@ class Player64:
 			return utility(current_board_state, current_block_state)
 
 		blocks_allowed  = get_allowed_blocks(prev_action, current_block_state)
-		actions = get_actions(current_board_state, blocks_allowed)
+		actions = get_actions(current_board_state, current_block_state, blocks_allowed)
 
 		for current_action in actions:
 			block_won, block_num = update_state(current_board_state, current_block_state, current_action, flag)
@@ -49,7 +48,7 @@ class Player64:
 			return utility(current_board_state, current_block_state)
 
 		blocks_allowed  = get_allowed_blocks(prev_action, current_block_state)
-		actions = get_actions(current_board_state, blocks_allowed)
+		actions = get_actions(current_board_state, current_block_state, blocks_allowed)
 
 		for current_action in actions:
 			block_won, block_num = update_state(current_board_state, current_block_state, current_action, flag)
@@ -76,34 +75,34 @@ class Player64:
 			score += (factor * 100)
 		elif (board_state[idx1][idx2] == board_state[idx1 + 1][idx2 + 1] and board_state[idx1][idx2] == mark) or (board_state[idx1 + 1][idx2 + 1] == board_state[idx1 + 2][idx2 + 2] and board_state[idx1 + 1][idx2 + 1] == mark):
 			score += (factor * 10)
-		elif board_state[idx1][idx2] == mark or board_state[idx1+1][idx2+1] == mark or board_state[idx1+1][idx2+1] == mark:
-			score += (factor * 1)
+		#elif board_state[idx1][idx2] == mark or board_state[idx1+1][idx2+1] == mark or board_state[idx1+1][idx2+1] == mark:
+		#	score += (factor * 1)
 
 		#Second Diagonal
 		if board_state[idx1+2][idx2] == board_state[idx1 + 1][idx2 + 1] and board_state[idx1 + 1][idx2 + 1] == board_state[idx1][idx2 + 2] and board_state[idx1 + 2][idx2] == mark:
 			score += (factor * 100)
 		elif (board_state[idx1+2][idx2] == board_state[idx1 + 1][idx2 + 1] and board_state[idx1+2][idx2] == mark) or (board_state[idx1 + 1][idx2 + 1] == board_state[idx1][idx2 + 2] and board_state[idx1 + 1][idx2 + 1] == mark): 
 			score += (factor * 10)
-		elif board_state[idx1+2][idx2] == mark or board_state[idx1 + 1][idx2 + 1] == mark or board_state[idx1][idx2 + 2] == mark:
-			score += (factor * 1)
+		#elif board_state[idx1+2][idx2] == mark or board_state[idx1 + 1][idx2 + 1] == mark or board_state[idx1][idx2 + 2] == mark:
+		#	score += (factor * 1)
 
-		#Columns
+		#Rows
 		for i in range(idx1,idx1+3):
 			if board_state[i][idx2] == board_state[i][idx2 + 1] and board_state[i][idx2 + 1] == board_state[i][idx2 + 2] and board_state[i][idx2] == mark:
 				score += (factor * 100)
 			elif (board_state[i][idx2] == board_state[i][idx2 + 1] and board_state[i][idx2] ==mark) or (board_state[i][idx2 + 1] == board_state[i][idx2 + 2] and board_state[i][idx2 + 1] == mark):
 				score += (factor * 10)
-			elif board_state[i][idx2] == mark or board_state[i][idx2 + 1] == mark or board_state[i][idx2 + 2] == mark:
-				score += (factor * 1)
+			#elif board_state[i][idx2] == mark or board_state[i][idx2 + 1] == mark or board_state[i][idx2 + 2] == mark:
+			#	score += (factor * 1)
 
-		#Rows
+		#Columns
 		for i in range(idx2,idx2+3):
 			if board_state[idx1][i] == board_state[idx1+1][i] and board_state[idx1+1][i] == board_state[idx1+2][i] and board_state[idx1][i] == mark:
 				score += (factor * 100)
 			elif (board_state[idx1][i] == board_state[idx1+1][i] and board_state[idx1][i] == mark) or (board_state[idx1+1][i] == board_state[idx1+2][i] and board_state[idx1+1][i] == mark):
 				score += (factor * 10)
-			elif board_state[idx1][i] == mark or board_state[idx1+1][i] == mark or board_state[idx1+2][i] == mark:
-				score += (factor * 1)
+			#elif board_state[idx1][i] == mark or board_state[idx1+1][i] == mark or board_state[idx1+2][i] == mark:
+			#	score += (factor * 1)
 
 		return score
 
@@ -171,13 +170,13 @@ class Player64:
 			elif board_state[idx1+2][idx2] == board_state[idx1 + 1][idx2 + 1] and board_state[idx1 + 1][idx2 + 1] == board_state[idx1][idx2 + 2] and board_state[idx1 + 2][idx2] != '-':
 				flag = True
 
-			#Checking columns
+			#Checking rows
 			if flag != True:
 				for i in range(idx1,idx1+3):
 					if board_state[i][idx2] == board_state[i][idx2 + 1] and board_state[i][idx2 + 1] == board_state[i][idx2 + 2] and board_state[i][idx2] != '-':
 						flag = True
 						break
-			#Checking rows
+			#Checking columns
 			if flag != True:
 				for i in range(idx2,idx2+3):
 					if board_state[idx1][i] == board_state[idx1+1][i] and board_state[idx1+1][i] == board_state[idx1+2][i] and board_state[idx1][i] != '-':
@@ -197,7 +196,7 @@ class Player64:
 		if block_won:
 			block_state[block_num] = '-'
 
-	def get_actions(self, board_state, blocks_allowed):
+	def get_actions(self, board_state, block_state, blocks_allowed):
 		actions = []
 		for block_num in blocks_allowed:
 			#Coordinates of top left cell of the modified block
@@ -210,6 +209,8 @@ class Player64:
 
 		if actions == []:
 			for block_num in range(1,9):
+				if block_state[block_num] != '-':
+					continue
 				idx1 = (block_num/3)*3
 				idx2 = (block_num%3)*3
 				for i in range(idx1, idx1 + 3):
